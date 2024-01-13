@@ -3,7 +3,12 @@ const node_fetch = require('node-fetch');
 
 const INTERVAL = 10_000;
 
-outputBanksTracked('banks.csv');
+run();
+
+async function run() {
+    await output('banks.csv', 'institutions', 'banks');
+    await output('failures.csv', 'failures', 'failures');
+}
 
 async function fetch(path) {
     const response = await node_fetch(path);
@@ -35,11 +40,12 @@ function ifExistsClear(filepath) {
     }
 }
 
-async function outputBanksTracked(csvPath) {
+async function output(csvPath, apiPath, debugNamePlural) {
+    console.log(`===== Starting ${debugNamePlural} =====`);
     ifExistsClear(csvPath);
 
-    const totalBanks = await getTotalCount('institutions');
-    let banksSoFar = 0;
+    const totalItems = await getTotalCount(apiPath);
+    let itemsSoFar = 0;
     let offset = 0;
     
     //const response = await fetch(`https://banks.data.fdic.gov/api/institutions?limit=10000&offset=${offset}`);
@@ -47,11 +53,11 @@ async function outputBanksTracked(csvPath) {
     // console.log(response.data[0].score);
 
     // Add the columns
-    const colsString = await getColsString('institutions');
+    const colsString = await getColsString(apiPath);
     fs.appendFileSync(csvPath, colsString);
 
-    while (banksSoFar < totalBanks) {
-        const response = await fetch(`https://banks.data.fdic.gov/api/institutions?limit=${INTERVAL}&offset=${offset}`);
+    while (itemsSoFar < totalItems) {
+        const response = await fetch(`https://banks.data.fdic.gov/api/${apiPath}?limit=${INTERVAL}&offset=${offset}`);
         const data = response.data;
         // Write the data we've read in to the CSV
         for (let i = 0; i < data.length; i++) {
@@ -64,8 +70,43 @@ async function outputBanksTracked(csvPath) {
             str = str.substring(0, str.length - 1) + '\n';
             fs.appendFileSync(csvPath, str);
         }
-        banksSoFar += data.length;
+        itemsSoFar += data.length;
         offset += data.length;
-        console.log(`Done with ${banksSoFar}/${totalBanks} banks`);
+        console.log(`Done with ${itemsSoFar}/${totalItems} ${debugNamePlural}`);
     }
 }
+
+// async function outputBanksTracked(csvPath) {
+//     ifExistsClear(csvPath);
+
+//     const totalBanks = await getTotalCount('institutions');
+//     let banksSoFar = 0;
+//     let offset = 0;
+    
+//     //const response = await fetch(`https://banks.data.fdic.gov/api/institutions?limit=10000&offset=${offset}`);
+//     // console.log(Object.keys(response.data[0].data));
+//     // console.log(response.data[0].score);
+
+//     // Add the columns
+//     const colsString = await getColsString('institutions');
+//     fs.appendFileSync(csvPath, colsString);
+
+//     while (banksSoFar < totalBanks) {
+//         const response = await fetch(`https://banks.data.fdic.gov/api/institutions?limit=${INTERVAL}&offset=${offset}`);
+//         const data = response.data;
+//         // Write the data we've read in to the CSV
+//         for (let i = 0; i < data.length; i++) {
+//             const d = data[i].data;
+//             let str = '';
+//             for (let key in d) {
+//                 str += d[key] + ',';
+//             }
+//             // Remove last comma and add newline
+//             str = str.substring(0, str.length - 1) + '\n';
+//             fs.appendFileSync(csvPath, str);
+//         }
+//         banksSoFar += data.length;
+//         offset += data.length;
+//         console.log(`Done with ${banksSoFar}/${totalBanks} banks`);
+//     }
+// }
