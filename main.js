@@ -29,7 +29,15 @@ async function getColsString(path) { // returns string
     return colString;
 }
 
+function ifExistsClear(filepath) {
+    if (fs.existsSync(filepath)) {
+        fs.writeFileSync(filepath, '');
+    }
+}
+
 async function outputBanksTracked(csvPath) {
+    ifExistsClear(csvPath);
+
     const totalBanks = await getTotalCount('institutions');
     let banksSoFar = 0;
     let offset = 0;
