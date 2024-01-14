@@ -8,6 +8,7 @@ run();
 async function run() {
     await output('banks.csv', 'institutions', 'banks');
     await output('failures.csv', 'failures', 'failures');
+    await output('financials.csv', 'financials', 'financials');
 }
 
 async function fetch(path) {
