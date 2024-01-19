@@ -53,7 +53,7 @@ async function output(csvPath, apiPath, yamlPath, debugNamePlural) {
     for (let key in colData) {
         const name = colData[key].title;
         colNames.push(name);
-        colsString += name.replace(',', '') + ',';
+        colsString += key.replace(',', '') + ',';
     }
     // Remove last comma
     colsString = colsString.substring(0, colsString.length - 1) + '\n';
